@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build and generated output
+build/
+dist/
+out/
+coverage/
+*.tsbuildinfo
+
+# Package manager files
+bun.lock
+
+# Environment and local configuration
+.env*
+
+# Logs and caches
+*.log
+.cache/
+.eslintcache
+
+# IDE and operating-system files
+.idea/
+.vscode/
+.DS_Store
