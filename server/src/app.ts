@@ -13,8 +13,13 @@ import { inngest } from "@/inngest/index";
 import { functions } from "@/inngest/functions/index";
 
 const app = express();
-const corsOrigin:string[] = ['http://localhost:5173'];
+const corsOrigin = 'http://localhost:5173';
 
+app.use(cors({
+    origin:corsOrigin,
+    methods:["GET",'PUT','POST','DELETE','PATCH'],
+    credentials:true
+}))
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
@@ -22,10 +27,7 @@ app.use(express.json({limit:"2mb"}));
 app.use(express.urlencoded({extended:true,limit:"2mb"}))
 app.use(helmet())
 app.use(morgan("combined"))
-app.use(cors({
-    origin:corsOrigin,
-    methods:["GET",'PUT','POST','DELETE','PATCH'],
-}))
+
 
 app.use("/api/v1/tasks", taskRouter);
 app.use("/api/inngest", serve({ client: inngest, functions }));

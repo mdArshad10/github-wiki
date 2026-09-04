@@ -20,7 +20,7 @@ export function LoginPage() {
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: "/dashboard",
+        callbackURL: "http://localhost:5173/",
       })
     } finally {
       setIsSigningIn(false)
