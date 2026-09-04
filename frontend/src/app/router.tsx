@@ -12,6 +12,7 @@ import {
 } from "@/app/route-components"
 import { authClient } from "@/features/auth/lib/auth-client"
 import { queryClient } from "@/lib/query-client"
+import { VITE_FRONTEND_MODE } from "@/config/constant";
 
 export type RouterContext = {
   authClient: typeof authClient
@@ -43,7 +44,7 @@ const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "protected",
   beforeLoad: async ({ context }) => {
-    if (import.meta.env.VITE_DEMO_MODE == "dev") {
+    if (VITE_FRONTEND_MODE == "dev") {
       return true
     }
 

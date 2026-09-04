@@ -8,6 +8,12 @@ const db = client.db();
 
 export const auth = betterAuth({
     database: mongodbAdapter(db, { client }),
-    secret: env.BETTER_AUTH_SECRET,
-    baseURL: env.BETTER_AUTH_URL,
+    socialProviders: {
+        github: {
+            clientId: env.GITHUB_CLIENT_ID,
+            clientSecret: env.GITHUB_CLIENT_SECRET,
+    },
+      // tell the backend which frontend origins are allowed to make auth requests
+    trustedOrigins: env.ORIGIN.split(","),
+  },
 });
