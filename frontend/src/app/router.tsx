@@ -1,0 +1,121 @@
+import {
+  createRootRouteWithContext,
+  createRoute,
+  createRouter,
+  lazyRouteComponent,
+  redirect,
+} from "@tanstack/react-router"
+
+import {
+  ProtectedRouteComponent,
+  RootRouteComponent,
+} from "@/app/route-components"
+import { authClient } from "@/features/auth/lib/auth-client"
+import { queryClient } from "@/lib/query-client"
+import { VITE_FRONTEND_MODE } from "@/config/constant";
+
+export type RouterContext = {
+  authClient: typeof authClient
+  queryClient: typeof queryClient
+}
+
+const rootRoute = createRootRouteWithContext<RouterContext>()({
+  component: RootRouteComponent,
+})
+
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/login" })
+  },
+})
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: lazyRouteComponent(
+    () => import("@/features/auth/pages/login-page"),
+    "LoginPage"
+  ),
+})
+
+const protectedRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "protected",
+  beforeLoad: async ({ context }) => {
+    if (VITE_FRONTEND_MODE == "dev") {
+      return true
+    }
+
+    const session = await context.authClient.getSession()
+
+    if (!session.data) {
+      throw redirect({ to: "/login" })
+    }
+  },
+  component: ProtectedRouteComponent,
+})
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/dashboard",
+  component: lazyRouteComponent(
+    () => import("@/features/dashboard/pages/dashboard-page"),
+    "DashboardPage"
+  ),
+})
+
+const repoRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/repo/$repoId",
+  component: lazyRouteComponent(
+    () => import("@/features/repos/pages/repo-chat-page"),
+    "RepoChatPage"
+  ),
+})
+
+const repoSessionRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/repo/$repoId/session/$sessionId",
+  component: lazyRouteComponent(
+    () => import("@/features/repos/pages/repo-session-page"),
+    "RepoSessionPage"
+  ),
+})
+
+const settingsRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/settings",
+  component: lazyRouteComponent(
+    () => import("@/features/settings/pages/settings-page"),
+    "SettingsPage"
+  ),
+})
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  loginRoute,
+  protectedRoute.addChildren([
+    dashboardRoute,
+    repoRoute,
+    repoSessionRoute,
+    settingsRoute,
+  ]),
+])
+
+export const router = createRouter({
+  routeTree,
+  context: {
+    authClient,
+    queryClient,
+  },
+  defaultPreload: "intent",
+  defaultPreloadStaleTime: 0,
+})
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router
+  }
+}
