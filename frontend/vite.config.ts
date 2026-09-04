@@ -6,7 +6,9 @@ import { defineConfig } from "vite"
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  cacheDir: process.env.VITE_CACHE_DIR ?? "/private/tmp/github-wiki-vite-cache",
+  // Keep Vite's cache inside the project so this works across Linux, macOS,
+  // and environments where system temporary directories are not writable.
+  cacheDir: path.resolve(__dirname, "node_modules/.vite"),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

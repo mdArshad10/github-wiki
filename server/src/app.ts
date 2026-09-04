@@ -16,12 +16,12 @@ const app = express();
 const corsOrigin:string[] = ['http://localhost:5173'];
 
 
-app.all("/api/auth/*", toNodeHandler(auth));
+app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json({limit:"2mb"}));
 app.use(express.urlencoded({extended:true,limit:"2mb"}))
 app.use(helmet())
-app.use(morgan("dev"))
+app.use(morgan("combined"))
 app.use(cors({
     origin:corsOrigin,
     methods:["GET",'PUT','POST','DELETE','PATCH'],

@@ -6,6 +6,7 @@ import { env } from "@/shared/config/env";
 const client = new MongoClient(env.MONGODB_URI);
 const db = client.db();
 
+
 export const auth = betterAuth({
     database: mongodbAdapter(db, { client }),
     socialProviders: {
@@ -14,6 +15,6 @@ export const auth = betterAuth({
             clientSecret: env.GITHUB_CLIENT_SECRET,
     },
       // tell the backend which frontend origins are allowed to make auth requests
-    trustedOrigins: env.ORIGIN.split(","),
-  },
+    },
+    trustedOrigins: ["http://localhost:5173"],
 });
