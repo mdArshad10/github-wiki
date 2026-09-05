@@ -13,6 +13,7 @@ export const auth = betterAuth({
 		github: {
 			clientId: env.GITHUB_CLIENT_ID,
 			clientSecret: env.GITHUB_CLIENT_SECRET,
+			scope: ["user:email", "read:user", "repo"]
 		},
 		// tell the backend which frontend origins are allowed to make auth requests
 	},

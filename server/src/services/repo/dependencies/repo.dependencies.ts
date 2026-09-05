@@ -1,7 +1,8 @@
 
-import { TaskController } from "@/services/task/controllers/task.controller";
-import { TaskRepository } from "@/services/task/repositories/task.repository";
-import { TaskService } from "@/services/task/services/task.service";
+
+import { RepoRepository } from "../repositories/repo.repository";
+import { RepoService } from "../services/repo.service";
+import { RepoController } from "../controllers/repo.controller";
 
 /**
  * Dependency Injection Container for the Task module.
@@ -12,17 +13,17 @@ class Container {
     static init() {
         // Initialize repositories
         const repositories = {
-            taskRepository: new TaskRepository(),
+            repoRepository: new RepoRepository(),
         };
 
         // Initialize services with their respective repositories
         const services = {
-            taskService: new TaskService(repositories.taskRepository),
+            repoService: new RepoService(repositories.repoRepository),
         };
 
         // Initialize controllers with their respective services
         const controller = {
-            taskController: new TaskController(services.taskService),
+            repoController: new RepoController(services.repoService),
         };
 
         return {
@@ -34,8 +35,8 @@ class Container {
 }
 
 const initialized = Container.init();
-const { taskController } = initialized.controller;
+const { repoController } = initialized.controller;
 
 export { Container };
-export { taskController };
+export { repoController };
 export default initialized;

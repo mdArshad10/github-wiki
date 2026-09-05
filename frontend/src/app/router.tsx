@@ -11,8 +11,10 @@ import {
   RootRouteComponent,
 } from "@/app/route-components"
 import { authClient } from "@/features/auth/lib/auth-client"
+import { NotFoundPage } from "@/features/errors/pages/not-found-page"
+import { RouteErrorPage } from "@/features/errors/pages/route-error-page"
+import { LandingPage } from "@/features/landing/pages/landing-page"
 import { queryClient } from "@/lib/query-client"
-import { VITE_FRONTEND_MODE } from "@/config/constant";
 
 export type RouterContext = {
   authClient: typeof authClient
@@ -26,9 +28,7 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  beforeLoad: () => {
-    throw redirect({ to: "/login" })
-  },
+  component: LandingPage,
 })
 
 const loginRoute = createRoute({
@@ -44,10 +44,6 @@ const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "protected",
   beforeLoad: async ({ context }) => {
-    if (VITE_FRONTEND_MODE == "dev") {
-      return true
-    }
-
     const session = await context.authClient.getSession()
 
     if (!session.data) {
@@ -110,6 +106,8 @@ export const router = createRouter({
     authClient,
     queryClient,
   },
+  defaultErrorComponent: RouteErrorPage,
+  defaultNotFoundComponent: NotFoundPage,
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
 })
