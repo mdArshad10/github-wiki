@@ -691,6 +691,12 @@
       "skillPath": "design-research/skills/survey-design/SKILL.md",
       "computedHash": "396055897bc78cb679d072e3cdea30016f63beac04fbacb4a4e7e67ca14bc48d"
     },
+    "tanstack-table": {
+      "source": "tanstack-skills/tanstack-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/tanstack-table/skills/tanstack-table/SKILL.md",
+      "computedHash": "d5ac71bd795696cd3310165c3ea0e435c310a0ac3c4e9dd45b39ed91b8dbcbb1"
+    },
     "team-workflow": {
       "source": "owl-listener/designer-skills",
       "sourceType": "github",

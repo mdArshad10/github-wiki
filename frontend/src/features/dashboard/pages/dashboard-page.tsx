@@ -1,4 +1,9 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import {
+  createColumnHelper,
+  tableFeatures,
+  useTable,
+} from "@tanstack/react-table"
 import {
   ChevronDown,
   CircleAlert,
@@ -51,6 +56,12 @@ const tableActionClass =
 
 const sectionEyebrowClass =
   "font-mono text-[9px] leading-none tracking-[0.14em] text-[var(--terminal-faint)]"
+
+const repositoryTableFeatures = tableFeatures({})
+const repositoryColumnHelper = createColumnHelper<
+  typeof repositoryTableFeatures,
+  Repository
+>()
 
 function metricCellClass(index: number) {
   return `min-h-[86px] px-[17px] py-[15px] ${metricCellClasses[index]}`
@@ -112,28 +123,145 @@ function RepoAction({
   )
 }
 
+function repositoryColumns(onIndex: (id: string) => void) {
+  return repositoryColumnHelper.columns([
+    repositoryColumnHelper.accessor("name", {
+      header: "REPOSITORY",
+      cell: ({ row }) => {
+        const repo = row.original
+
+        return (
+          <div className="flex min-w-[260px] items-center gap-2.5">
+            <span className="grid h-[25px] w-[25px] shrink-0 place-items-center border border-[#2d555c] bg-[#0b181b] text-[var(--terminal-cyan)]">
+              <Code2 size={15} />
+            </span>
+            <div className="flex min-w-0 flex-col gap-[5px]">
+              <strong className="font-mono text-[12px] leading-none font-semibold text-[var(--terminal-text)]">
+                {repo.name}
+              </strong>
+              <small className="max-w-[280px] overflow-hidden font-mono text-[10px] leading-[1.2] text-ellipsis whitespace-nowrap text-[var(--terminal-muted)]">
+                {repo.description}
+              </small>
+            </div>
+          </div>
+        )
+      },
+    }),
+    repositoryColumnHelper.accessor("language", {
+      header: "LANGUAGE",
+      cell: ({ row }) => (
+        <span className="inline-flex items-center gap-[6px] font-mono text-[10px] leading-none text-[#a8b8ba]">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: row.original.languageColor }}
+          />
+          {row.original.language}
+        </span>
+      ),
+    }),
+    repositoryColumnHelper.accessor("visibility", {
+      header: "VISIBILITY",
+      cell: ({ row }) => (
+        <span
+          className={`inline-flex items-center border px-[6px] py-1 font-mono text-[8px] leading-none tracking-[0.1em] ${row.original.visibility === "PRIVATE" ? "border-[#574b2d] text-[var(--terminal-amber)]" : "border-[#2a3a40] text-[var(--terminal-muted)]"}`}
+        >
+          {row.original.visibility}
+        </span>
+      ),
+    }),
+    repositoryColumnHelper.accessor("updatedAt", {
+      header: "ACTIVITY",
+      cell: ({ row }) => (
+        <div className="inline-flex items-center gap-2.5 font-mono text-[10px] leading-none text-[var(--terminal-muted)]">
+          <span className="inline-flex items-center gap-1">
+            <Star size={13} className="text-[var(--terminal-faint)]" />
+            {row.original.stars}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <GitBranch size={13} className="text-[var(--terminal-faint)]" />
+            {row.original.forks}
+          </span>
+          <small className="text-[var(--terminal-faint)]">
+            {row.original.updatedAt}
+          </small>
+        </div>
+      ),
+    }),
+    repositoryColumnHelper.accessor("status", {
+      header: "INDEX STATE",
+      cell: ({ row }) => {
+        const repo = row.original
+
+        return (
+          <div className="flex min-w-[165px] flex-col gap-[7px]">
+            <span
+              className={`inline-flex w-fit items-center gap-[5px] font-mono text-[9px] leading-none tracking-[0.08em] ${statusClasses[repo.status]}`}
+            >
+              <StatusMark status={repo.status} /> {statusLabels[repo.status]}
+            </span>
+            {repo.status === "indexing" && (
+              <div className="h-[3px] w-[108px] bg-[#1b2a30]">
+                <span
+                  className="block h-full bg-[var(--terminal-amber)]"
+                  style={{ width: `${repo.progress ?? 0}%` }}
+                />
+              </div>
+            )}
+            {repo.outdated && (
+              <small className="font-mono text-[9px] leading-none text-[var(--terminal-amber)]">
+                OUTDATED · RE-INDEX AVAILABLE
+              </small>
+            )}
+            {repo.status === "ready" && repo.indexedAt && (
+              <small className="font-mono text-[9px] leading-none text-[var(--terminal-muted)]">
+                indexed {repo.indexedAt}
+              </small>
+            )}
+          </div>
+        )
+      },
+    }),
+    repositoryColumnHelper.display({
+      id: "actions",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-2">
+          <RepoAction repo={row.original} onIndex={onIndex} />
+          <button
+            className="grid h-[25px] w-[25px] place-items-center border border-[var(--terminal-rule)] bg-transparent text-[var(--terminal-muted)] transition-colors hover:border-[var(--terminal-cyan)] hover:text-[var(--terminal-cyan)]"
+            type="button"
+            aria-label={`More actions for ${row.original.name}`}
+          >
+            <MoreHorizontal size={16} />
+          </button>
+        </div>
+      ),
+    }),
+  ])
+}
+
 export function DashboardPage() {
   const [search, setSearch] = useState("")
   const [activeFilter, setActiveFilter] = useState("ALL REPOS")
-  const [repoRows, setRepoRows] = useState(repositories)
+  const [repoRows, setRepoRows] = useState([])
 
   const filteredRepos = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
-    return repoRows.filter((repo) => {
+    return repoRows?.filter((repo:any) => {
       const matchesSearch =
         !normalizedSearch ||
-        repo.name.includes(normalizedSearch) ||
-        repo.description.toLowerCase().includes(normalizedSearch)
+        repo?.name?.includes(normalizedSearch) ||
+        repo?.description?.toLowerCase().includes(normalizedSearch)
       const matchesFilter =
         activeFilter === "ALL REPOS" ||
         (activeFilter === "READY" && repo.status === "ready") ||
         (activeFilter === "ACTION NEEDED" &&
-          (repo.status === "not-indexed" || repo.status === "failed"))
+          (repo?.status === "not-indexed" || repo.status === "failed"))
       return matchesSearch && matchesFilter
     })
   }, [activeFilter, repoRows, search])
 
-  function indexRepo(id: string) {
+  const indexRepo = useCallback((id: string) => {
     setRepoRows((current) =>
       current.map((repo) =>
         repo.id === id ? { ...repo, status: "indexing", progress: 8 } : repo
@@ -153,7 +281,15 @@ export function DashboardPage() {
         )
       )
     }, 1500)
-  }
+  }, [])
+
+  const columns = useMemo(() => repositoryColumns(indexRepo), [indexRepo])
+  const table = useTable({
+    features: repositoryTableFeatures,
+    columns,
+    data: filteredRepos,
+    getRowId: (row) => row.id,
+  })
 
   return (
     <AppShell
@@ -289,135 +425,55 @@ export function DashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[960px] border-collapse">
             <thead>
-              <tr>
-                {[
-                  "REPOSITORY",
-                  "LANGUAGE",
-                  "VISIBILITY",
-                  "ACTIVITY",
-                  "INDEX STATE",
-                ].map((heading) => (
-                  <th
-                    key={heading}
-                    className="h-[34px] border-b border-[var(--terminal-rule)] px-[14px] text-left font-mono text-[9px] leading-none font-normal tracking-[0.12em] text-[var(--terminal-faint)]"
-                  >
-                    {heading}
-                  </th>
-                ))}
-                <th
-                  className="h-[34px] border-b border-[var(--terminal-rule)] px-[14px] text-left"
-                  aria-label="Actions"
-                />
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRepos.map((repo) => (
-                <tr
-                  key={repo.id}
-                  className="transition-colors hover:bg-[#0e171b] last:[&>td]:border-b-0"
-                >
-                  <td className="border-b border-[var(--terminal-rule-soft)] p-[14px] align-middle">
-                    <div className="flex min-w-[260px] items-center gap-2.5">
-                      <span className="grid h-[25px] w-[25px] shrink-0 place-items-center border border-[#2d555c] bg-[#0b181b] text-[var(--terminal-cyan)]">
-                        <Code2 size={15} />
-                      </span>
-                      <div className="flex min-w-0 flex-col gap-[5px]">
-                        <strong className="font-mono text-[12px] leading-none font-semibold text-[var(--terminal-text)]">
-                          {repo.name}
-                        </strong>
-                        <small className="max-w-[280px] overflow-hidden font-mono text-[10px] leading-[1.2] text-ellipsis whitespace-nowrap text-[var(--terminal-muted)]">
-                          {repo.description}
-                        </small>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="border-b border-[var(--terminal-rule-soft)] p-[14px] align-middle">
-                    <span className="inline-flex items-center gap-[6px] font-mono text-[10px] leading-none text-[#a8b8ba]">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: repo.languageColor }}
-                      />
-                      {repo.language}
-                    </span>
-                  </td>
-                  <td className="border-b border-[var(--terminal-rule-soft)] p-[14px] align-middle">
-                    <span
-                      className={`inline-flex items-center border px-[6px] py-1 font-mono text-[8px] leading-none tracking-[0.1em] ${repo.visibility === "PRIVATE" ? "border-[#574b2d] text-[var(--terminal-amber)]" : "border-[#2a3a40] text-[var(--terminal-muted)]"}`}
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="h-[34px] border-b border-[var(--terminal-rule)] px-[14px] text-left font-mono text-[9px] leading-none font-normal tracking-[0.12em] text-[var(--terminal-faint)]"
+                      aria-label={
+                        header.id === "actions" ? "Actions" : undefined
+                      }
                     >
-                      {repo.visibility}
-                    </span>
-                  </td>
-                  <td className="border-b border-[var(--terminal-rule-soft)] p-[14px] align-middle">
-                    <div className="inline-flex items-center gap-2.5 font-mono text-[10px] leading-none text-[var(--terminal-muted)]">
-                      <span className="inline-flex items-center gap-1">
-                        <Star
-                          size={13}
-                          className="text-[var(--terminal-faint)]"
-                        />{" "}
-                        {repo.stars}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <GitBranch
-                          size={13}
-                          className="text-[var(--terminal-faint)]"
-                        />{" "}
-                        {repo.forks}
-                      </span>
-                      <small className="text-[var(--terminal-faint)]">
-                        {repo.updatedAt}
-                      </small>
-                    </div>
-                  </td>
-                  <td className="border-b border-[var(--terminal-rule-soft)] p-[14px] align-middle">
-                    <div className="flex min-w-[165px] flex-col gap-[7px]">
-                      <span
-                        className={`inline-flex w-fit items-center gap-[5px] font-mono text-[9px] leading-none tracking-[0.08em] ${statusClasses[repo.status]}`}
-                      >
-                        <StatusMark status={repo.status} />{" "}
-                        {statusLabels[repo.status]}
-                      </span>
-                      {repo.status === "indexing" && (
-                        <div className="h-[3px] w-[108px] bg-[#1b2a30]">
-                          <span
-                            className="block h-full bg-[var(--terminal-amber)]"
-                            style={{ width: `${repo.progress ?? 0}%` }}
-                          />
-                        </div>
+                      {header.isPlaceholder ? null : (
+                        <table.FlexRender header={header} />
                       )}
-                      {repo.outdated && (
-                        <small className="font-mono text-[9px] leading-none text-[var(--terminal-amber)]">
-                          OUTDATED · RE-INDEX AVAILABLE
-                        </small>
-                      )}
-                      {repo.status === "ready" && repo.indexedAt && (
-                        <small className="font-mono text-[9px] leading-none text-[var(--terminal-muted)]">
-                          indexed {repo.indexedAt}
-                        </small>
-                      )}
-                    </div>
-                  </td>
-                  <td className="border-b border-[var(--terminal-rule-soft)] p-[14px] align-middle">
-                    <div className="flex justify-end gap-2">
-                      <RepoAction repo={repo} onIndex={indexRepo} />
-                      <button
-                        className="grid h-[25px] w-[25px] place-items-center border border-[var(--terminal-rule)] bg-transparent text-[var(--terminal-muted)] transition-colors hover:border-[var(--terminal-cyan)] hover:text-[var(--terminal-cyan)]"
-                        type="button"
-                        aria-label={`More actions for ${repo.name}`}
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
-                    </div>
-                  </td>
+                    </th>
+                  ))}
                 </tr>
               ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className="transition-colors hover:bg-[#0e171b] last:[&>td]:border-b-0"
+                >
+                  {row.getAllCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="border-b border-[var(--terminal-rule-soft)] p-[14px] align-middle"
+                    >
+                      <table.FlexRender cell={cell} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              {table.getRowModel().rows.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={table.getAllLeafColumns().length}
+                    className="h-[160px] border-b border-[var(--terminal-rule-soft)] p-[14px] text-center align-middle"
+                  >
+                    <span className="inline-flex items-center gap-2 font-mono text-[11px] leading-none text-[var(--terminal-muted)]">
+                      <Database size={18} />
+                      <span>No repositories match this filter.</span>
+                    </span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
-          {filteredRepos.length === 0 && (
-            <div className="flex min-h-[160px] items-center justify-center gap-2 font-mono text-[11px] leading-none text-[var(--terminal-muted)]">
-              <Database size={18} />
-              <span>No repositories match this filter.</span>
-            </div>
-          )}
         </div>
         <div className="flex min-h-[39px] items-center justify-between border-t border-[var(--terminal-rule)] px-[14px] font-mono text-[9px] leading-none tracking-[0.06em] text-[var(--terminal-faint)] max-[760px]:gap-3 max-[760px]:overflow-x-auto">
           <span className="shrink-0">

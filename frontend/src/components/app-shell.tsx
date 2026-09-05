@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Link } from "@tanstack/react-router"
+import { Link, useLocation } from "@tanstack/react-router"
 import {
   Activity,
   BookOpen,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 
 import { useUiStore } from "@/stores/ui.store"
+import type { DashboardTab } from "@/features/dashboard/dashboard-tabs"
 
 type AppShellProps = {
   children: ReactNode
@@ -24,10 +25,25 @@ type AppShellProps = {
 }
 
 const navItems = [
-  { label: "Overview", to: "/dashboard", icon: Grid2X2 },
-  { label: "Repositories", to: "/dashboard", icon: BookOpen },
-  { label: "Activity", to: "/dashboard", icon: Activity },
-  { label: "Settings", to: "/settings", icon: Settings2 },
+  {
+    label: "Overview",
+    to: "/dashboard",
+    tab: "overview" as DashboardTab,
+    icon: Grid2X2,
+  },
+  {
+    label: "Repositories",
+    to: "/dashboard",
+    tab: "repositories" as DashboardTab,
+    icon: BookOpen,
+  },
+  {
+    label: "Activity",
+    to: "/dashboard",
+    tab: "activity" as DashboardTab,
+    icon: Activity,
+  },
+  { label: "Settings", to: "/settings", tab: undefined, icon: Settings2 },
 ] as const
 
 export function AppShell({
@@ -39,6 +55,13 @@ export function AppShell({
 }: AppShellProps) {
   const sidebarCollapsed = useUiStore((state) => state.sidebarCollapsed)
   const setSidebarCollapsed = useUiStore((state) => state.setSidebarCollapsed)
+  const location = useLocation()
+  const activeDashboardTab =
+    location.pathname === "/dashboard" &&
+    (location.search.tab === "repositories" ||
+    location.search.tab === "activity"
+      ? location.search.tab
+      : "overview")
 
   return (
     <div className="terminal-app">
@@ -52,6 +75,7 @@ export function AppShell({
         <div className="sidebar-topline">
           <Link
             to="/dashboard"
+            search={{ tab: "overview" }}
             className="brand-lockup"
             aria-label="Wiki RAG home"
           >
@@ -96,21 +120,28 @@ export function AppShell({
 
         <nav className="terminal-nav" aria-label="Primary navigation">
           <span className="nav-section-label">NAVIGATION</span>
-          {navItems.map(({ label, to, icon: Icon }) => (
-            <Link
-              key={label}
-              to={to}
-              className="nav-link"
-              activeProps={{ className: "nav-link is-active" }}
-              title={sidebarCollapsed ? label : undefined}
-            >
-              <Icon size={16} />
-              {!sidebarCollapsed && <span>{label}</span>}
-              {!sidebarCollapsed && label === "Repositories" && (
-                <span className="nav-count">12</span>
-              )}
-            </Link>
-          ))}
+          {navItems.map(({ label, to, tab, icon: Icon }) => {
+            const isActive = tab
+              ? activeDashboardTab === tab
+              : location.pathname === to
+
+            return (
+              <Link
+                key={label}
+                to={to}
+                {...(tab ? { search: { tab } } : {})}
+                className={isActive ? "nav-link is-active" : "nav-link"}
+                aria-current={isActive ? "page" : undefined}
+                title={sidebarCollapsed ? label : undefined}
+              >
+                <Icon size={16} />
+                {!sidebarCollapsed && <span>{label}</span>}
+                {!sidebarCollapsed && label === "Repositories" && (
+                  <span className="nav-count">12</span>
+                )}
+              </Link>
+            )
+          })}
         </nav>
 
         {!sidebarCollapsed && (

@@ -21,6 +21,7 @@
     "@langchain/core": "^1.2.9",
     "@langchain/openai": "^1.5.11",
     "@langchain/textsplitters": "^1.0.1",
+    "@octokit/app": "^16.1.4",
     "better-auth": "^1.7.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
@@ -31,6 +32,7 @@
     "mongodb": "^6.20.0",
     "mongoose": "8",
     "morgan": "^1.12.0",
+    "octokit": "^5.0.5",
     "zod": "^4.5.4"
   }
 }

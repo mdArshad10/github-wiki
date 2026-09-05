@@ -14,6 +14,7 @@ import { authClient } from "@/features/auth/lib/auth-client"
 import { NotFoundPage } from "@/features/errors/pages/not-found-page"
 import { RouteErrorPage } from "@/features/errors/pages/route-error-page"
 import { LandingPage } from "@/features/landing/pages/landing-page"
+import { isDashboardTab } from "@/features/dashboard/dashboard-tabs"
 import { queryClient } from "@/lib/query-client"
 
 export type RouterContext = {
@@ -56,6 +57,9 @@ const protectedRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/dashboard",
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: isDashboardTab(search.tab) ? search.tab : "overview",
+  }),
   component: lazyRouteComponent(
     () => import("@/features/dashboard/pages/dashboard-page"),
     "DashboardPage"

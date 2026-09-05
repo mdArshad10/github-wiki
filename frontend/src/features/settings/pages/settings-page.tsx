@@ -96,7 +96,9 @@ export function SettingsPage() {
           </div>
           <div className="usage-foot">
             <span>RESETS IN 12 DAYS</span>
-            <Link to="/dashboard">VIEW ACTIVITY ↗</Link>
+            <Link to="/dashboard" search={{ tab: "activity" }}>
+              VIEW ACTIVITY ↗
+            </Link>
           </div>
         </aside>
       </div>

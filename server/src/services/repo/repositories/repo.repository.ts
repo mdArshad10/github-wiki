@@ -1,4 +1,4 @@
-import {RepoModel,type RepoDocument} from '@/shared/models/repos.model'
+import {RepoModel,type IRepo,type RepoDocument} from '@/shared/models/repos.model'
 import type { CreateTaskInput, UpdateTaskInput } from "@/services/task/validation/task.validation";
 
 export interface RepoRepositoryContract {
@@ -7,6 +7,7 @@ export interface RepoRepositoryContract {
     create(input: CreateTaskInput): Promise<RepoDocument>;
     updateById(id: string, input: UpdateTaskInput): Promise<RepoDocument | null>;
     deleteById(id: string): Promise<RepoDocument | null>;
+    bulkInsert(data:IRepo[]):Promise<RepoDocument[]>
 }
 
 export class RepoRepository implements RepoRepositoryContract {
@@ -34,5 +35,9 @@ export class RepoRepository implements RepoRepositoryContract {
 
     async deleteById(id: string): Promise<RepoDocument | null> {
         return RepoModel.findByIdAndDelete(id).exec();
+    }
+
+    async bulkInsert(data:IRepo[]): Promise<RepoDocument[]> {
+        return RepoModel.insertMany(data)
     }
 }

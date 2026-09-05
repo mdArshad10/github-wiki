@@ -22,11 +22,13 @@ export const auth = betterAuth({
 		user: {
 			create: {
 				after: async (user) => {
+					console.log(user)
 					await UserProfile.create({
 						authUserId: user.id,
 						githubUsername: user.name, // Better Auth maps GitHub's "login" here by default
 						email: user.email,
 						avatarUrl: user.image,
+						installationId:user.installationId,
 					});
 				},
 			},
