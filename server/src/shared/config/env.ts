@@ -32,6 +32,7 @@ const envSchema = z.object({
 	MEM0_API_KEY: z.string().trim().min(1, "MEM0_API_KEY is required"),
 	OPENAI_API_KEY: z.string().trim().min(1, "OPENAI_API_KEY is required"),
 	ORIGIN: z.string().trim().min(1, "ORIGIN is required"),
+	REDIS_URL:z.string().trim().min(1,"REDIS_URL is required")
 	// GITHUB_APP_ID: z.string().trim().min(1, "GITHUB_APP_ID is required"),
 	// GITHUB_PRIVATE_KEY: z
 	// 	.string()

@@ -34,7 +34,6 @@ export function NotFoundPage() {
           </Link>
           <Link
             to="/dashboard"
-            search={{ tab: "overview" }}
             className="inline-flex min-h-[38px] items-center gap-[9px] border border-[var(--terminal-rule)] px-[13px] font-mono text-[9px] leading-none tracking-[.1em] text-[var(--terminal-cyan)] no-underline hover:border-[var(--terminal-cyan)] hover:bg-[#0d1b1e]"
           >
             <ArrowLeft size={15} /> OPEN WORKSPACE

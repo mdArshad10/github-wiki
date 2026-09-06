@@ -1,19 +1,28 @@
-import type{Request,Response,NextFunction} from 'express'
+import type { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
-import { auth } from '../config/auth';
 
-export const authMiddleware = async(req:Request,res:Response,next:NextFunction)=>{
-    try {
-        const session = await auth.api.getSession({
-            headers: fromNodeHeaders(req.headers),
-        });
-        if(!session){
-           return next(new Error("unauthorized"))
-        }
-        req.session = session?.session;
-        req.user = session?.user;
-        next()
-    } catch (error) {
-        next(error)
-    }
-}
+import { auth } from "@/shared/config/auth";
+import AppError from "@/shared/utils/app-error";
+
+export const authMiddleware = async (
+	req: Request,
+	_res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: fromNodeHeaders(req.headers),
+		});
+
+		if (!session) {
+			next(new AppError("Unauthorized", 401));
+			return;
+		}
+
+		req.session = session.session;
+		req.user = session.user;
+		next();
+	} catch (error) {
+		next(error);
+	}
+};

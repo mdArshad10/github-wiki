@@ -1,0 +1,3 @@
+- Prefers live UI updates for activity/event data, but considers ~10s–1min of lag acceptable ("live" = up to a minute stale); polling-based updates are fine within that tolerance. Confidence: 0.8
+- Prefers to implement code changes himself rather than having the assistant implement them; wants step-by-step instructions/guides to follow instead. Confidence: 0.9
+- Wants implementation guides written as markdown files under a `.commandcode/<feature>/` folder (e.g. `.commandcode/activity-logger/README.md`). Confidence: 0.8

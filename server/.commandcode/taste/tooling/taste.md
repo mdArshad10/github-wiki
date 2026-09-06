@@ -1,0 +1,1 @@
+- Avoids Inngest for real-time/event delivery; leans toward Redis (pub/sub or buffering) for live updates and high-velocity events. Confidence: 0.7

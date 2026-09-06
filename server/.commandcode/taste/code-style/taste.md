@@ -1,0 +1,1 @@
+- Prefers minimizing per-event database writes; favors batched/bulk inserts over individual inserts to reduce DB round-trips. Confidence: 0.8

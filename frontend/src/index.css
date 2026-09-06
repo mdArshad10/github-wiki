@@ -46,6 +46,40 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --animate-loader-step: loader-step 3.3s steps(1) infinite;
+  --animate-loader-step-label: loader-step-label 3.3s steps(1) infinite;
+  --animate-loader-caret: loader-caret 1s ease-in-out infinite;
+
+  @keyframes loader-step {
+    0%,
+    33.32% {
+      background-color: var(--terminal-cyan);
+    }
+    33.33%,
+    100% {
+      background-color: #1b2a30;
+    }
+  }
+  @keyframes loader-step-label {
+    0%,
+    33.32% {
+      opacity: 1;
+    }
+    33.33%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes loader-caret {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
 }
 
 :root {
@@ -637,9 +671,10 @@ kbd {
 
 /* Chat */
 .chat-layout {
-  min-height: 630px;
+  min-height: 0;
   display: grid;
   grid-template-columns: 214px minmax(380px, 1fr) 275px;
+  grid-template-rows: minmax(0, 1fr);
   border: 1px solid var(--terminal-rule);
   background: var(--terminal-surface);
 }
@@ -1301,14 +1336,16 @@ kbd {
     padding: 0 17px 28px;
   }
   .chat-layout {
-    min-height: 650px;
-    display: block;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .session-sidebar {
     display: none;
   }
   .chat-thread {
-    min-height: 650px;
+    min-height: 0;
+    flex: 1;
   }
   .settings-grid {
     grid-template-columns: 1fr;

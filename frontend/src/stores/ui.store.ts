@@ -32,25 +32,5 @@ export const useUiStore = create<UiStore>()(
   )
 )
 
-type UiUser = {
-  session: string
-  setSession: (session: string) => void
-}
-
-
-export const useUserStore = create<UiUser>()(
-  persist(
-    (set) => ({
-      session: "",
-      setSession: (session: string) => set({session})
-    }),
-    {
-      name: "github-wiki-user-session",
-      partialize: (state) => ({
-        theme: state.session,
-      }),
-    }
-  )
-)
 
 

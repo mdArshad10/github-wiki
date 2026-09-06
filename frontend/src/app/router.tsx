@@ -13,16 +13,19 @@ import {
 import { authClient } from "@/features/auth/lib/auth-client"
 import { NotFoundPage } from "@/features/errors/pages/not-found-page"
 import { RouteErrorPage } from "@/features/errors/pages/route-error-page"
+import { RouteTransitionLoader } from "@/components/route-transition-loader"
 import { LandingPage } from "@/features/landing/pages/landing-page"
-import { isDashboardTab } from "@/features/dashboard/dashboard-tabs"
 import { queryClient } from "@/lib/query-client"
+import { useUserStore } from "@/stores/user.store"
 
 export type RouterContext = {
   authClient: typeof authClient
-  queryClient: typeof queryClient
+  queryClient: typeof queryClient,
+  auth: ReturnType<typeof useUserStore.getState>
 }
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
+  validateSearch: (search: Record<string, unknown>) => search,
   component: RootRouteComponent,
 })
 
@@ -39,17 +42,38 @@ const loginRoute = createRoute({
     () => import("@/features/auth/pages/login-page"),
     "LoginPage"
   ),
+  beforeLoad: async({context,location})=>{
+    const store = context.auth;
+    if(store.userDetail.email !== null){
+      throw redirect({
+        to:"/login",
+        search:{
+          redirect:location.href
+        }
+      })
+    }
+  }
 })
 
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "protected",
   beforeLoad: async ({ context }) => {
+    const store = context.auth;
+
+    if(store.userDetail.email) return;
+
     const session = await context.authClient.getSession()
 
     if (!session.data) {
       throw redirect({ to: "/login" })
     }
+    store.setSession(session.data.session.token);
+    store.setUserDetails({
+      email: session.data.user.email,
+      avatarUrl:session.data.user?.image ?? null,
+      githubUsername:session.data.user.name,
+    })
   },
   component: ProtectedRouteComponent,
 })
@@ -57,12 +81,36 @@ const protectedRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/dashboard",
-  validateSearch: (search: Record<string, unknown>) => ({
-    tab: isDashboardTab(search.tab) ? search.tab : "overview",
-  }),
+  component: lazyRouteComponent(
+    () => import("@/features/dashboard/layouts/dashboard-layout"),
+    "DashboardLayout"
+  ),
+})
+
+const dashboardOverviewRoute = createRoute({
+  getParentRoute: () => dashboardRoute,
+  path: "/",
   component: lazyRouteComponent(
     () => import("@/features/dashboard/pages/dashboard-page"),
     "DashboardPage"
+  ),
+})
+
+const activityRoute = createRoute({
+  getParentRoute: () => dashboardRoute,
+  path: "/activity",
+  component: lazyRouteComponent(
+    () => import("@/features/dashboard/pages/activity-page"),
+    "activityPage"
+  ),
+})
+
+const repositoryRoute = createRoute({
+  getParentRoute: () => dashboardRoute,
+  path: "/repository",
+  component: lazyRouteComponent(
+    () => import("@/features/dashboard/pages/dashboard-page"),
+    "DashboardRepositoriesPage"
   ),
 })
 
@@ -97,7 +145,11 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   protectedRoute.addChildren([
-    dashboardRoute,
+    dashboardRoute.addChildren([
+      dashboardOverviewRoute,
+      repositoryRoute,
+      activityRoute,
+    ]),
     repoRoute,
     repoSessionRoute,
     settingsRoute,
@@ -109,9 +161,11 @@ export const router = createRouter({
   context: {
     authClient,
     queryClient,
+    auth:useUserStore.getState(),
   },
   defaultErrorComponent: RouteErrorPage,
   defaultNotFoundComponent: NotFoundPage,
+  defaultPendingComponent: RouteTransitionLoader,
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
 })

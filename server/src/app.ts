@@ -9,6 +9,7 @@ import morgan from "morgan";
 import { errorMiddleware } from "@/shared/middlewares/error-middleware";
 import taskRouter from "@/services/task/routes/task.routes";
 import repoRouter from "@/services/repo/routes/repo.routes";
+import userRouter from "@/services/user/routes/user.routes";
 import { ApiResponse } from "@/shared/utils/api-response";
 import { pingDatabase } from "@/shared/config/database";
 import { toNodeHandler } from "better-auth/node";
@@ -37,6 +38,7 @@ app.use(morgan("combined"));
 
 app.use("/api/v1/tasks", taskRouter);
 app.use("/api/v1/repos", repoRouter);
+app.use("/api/v1/users", userRouter);
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
 app.get("/health", async (req: Request, res: Response, next: NextFunction) => {
